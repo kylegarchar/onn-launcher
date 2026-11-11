@@ -82,7 +82,7 @@ object IconLoader {
                 }
                 options.inSampleSize = sample
                 val source = BitmapFactory.decodeFile(file.path, options) ?: continue
-                return ensureOpaque(cover(source, w, h))
+                return ensureOpaque(cover(source, w, h, allowSmaller = true))
             } catch (e: Throwable) {
                 continue
             }
@@ -143,7 +143,7 @@ object IconLoader {
             val raw = rawBitmap(res, bannerId)
             if (raw != null) {
                 try {
-                    return ensureOpaque(cover(raw, w, h))
+                    return ensureOpaque(cover(raw, w, h, allowSmaller = true))
                 } catch (e: Throwable) {
                     // Fall through to the drawable path.
                 }
@@ -225,7 +225,7 @@ object IconLoader {
      * Large images are halved step by step first, which avoids the shimmer and jagged
      * edges a single big bilinear reduction produces.
      */
-    private fun cover(source: Bitmap, w: Int, h: Int): Bitmap {
+    private fun cover(source: Bitmap, w: Int, h: Int, allowSmaller: Boolean = false): Bitmap {
         val src = soft(source)
         val srcAspect = src.width.toFloat() / src.height.toFloat()
         val dstAspect = w.toFloat() / h.toFloat()
@@ -240,6 +240,13 @@ object IconLoader {
             Bitmap.createBitmap(src, (src.width - cropW) / 2, (src.height - cropH) / 2, cropW, cropH)
         } else {
             src
+        }
+        if (allowSmaller && current.width <= w && current.height <= h) {
+            // Artwork smaller than the card is handed over at its native size, so the GPU
+            // scales it exactly once on screen. Enlarging it here first would resample it
+            // twice and soften it.
+            if (current.config == Bitmap.Config.ARGB_8888) return current
+            return current.copy(Bitmap.Config.ARGB_8888, false) ?: current
         }
         while (current.width >= w * 2 && current.height >= h * 2) {
             current = Bitmap.createScaledBitmap(current, current.width / 2, current.height / 2, true)

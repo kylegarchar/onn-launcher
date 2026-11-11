@@ -4,7 +4,8 @@
 Google TV / Android TV boxes. It is an original design: no ads, no recommendations rows,
 just your apps.
 
-- A dock of up to six favourites on a glass shelf, with every other app in a grid below.
+- A dock of up to five favourites on a glass shelf, with every other app in a five-wide
+  grid below.
 - The backdrop takes on the colours of whichever app is selected.
 - Focus motion: spring scale, soft shadow, a parallax nudge in the direction you moved,
   and a sweep of light across the card.
