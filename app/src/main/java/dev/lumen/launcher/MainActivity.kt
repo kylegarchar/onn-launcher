@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity(), Host {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private var state: LauncherState? = null
-    private var resumed = false
+    private var onScreen = false
     private var receiverRegistered = false
 
     private val packageReceiver = object : BroadcastReceiver() {
@@ -69,26 +69,28 @@ class MainActivity : ComponentActivity(), Host {
 
     override fun onStart() {
         super.onStart()
+        onScreen = true
         // Catches anything installed or removed while a broadcast was missed.
         if (state?.loaded == true) state?.reload()
     }
 
-    override fun onResume() {
-        super.onResume()
-        resumed = true
-    }
-
     override fun onPause() {
-        resumed = false
         state?.resetTransient()
         super.onPause()
+    }
+
+    override fun onStop() {
+        onScreen = false
+        super.onStop()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         // Home pressed while Home is already showing: back to the first app, like tvOS.
-        // Coming home from another app keeps your place instead.
-        if (resumed && hasWindowFocus() && intent.hasCategory(Intent.CATEGORY_HOME)) {
+        // Coming home from another app keeps your place instead. Android pauses an activity
+        // before handing it a new intent, so "already showing" means started and holding
+        // window focus, not resumed.
+        if (onScreen && hasWindowFocus() && intent.hasCategory(Intent.CATEGORY_HOME)) {
             state?.goHome()
         }
     }

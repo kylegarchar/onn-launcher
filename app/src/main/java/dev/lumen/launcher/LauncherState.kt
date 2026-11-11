@@ -153,6 +153,16 @@ class LauncherState(
                 val e = byId[id] ?: continue
                 if (newDock.size < Metrics.MAX_DOCK - 1 && used.add(id)) newDock.add(e)
             }
+            // None of the usual suspects installed: start the dock with whatever is.
+            if (newDock.size < 3) {
+                val others = all
+                    .filter { !it.isBuiltin && !it.isSystem && it.id !in used }
+                    .sortedBy { it.label.lowercase() }
+                for (e in others) {
+                    if (newDock.size >= Metrics.MAX_DOCK - 1) break
+                    if (used.add(e.id)) newDock.add(e)
+                }
+            }
             val settings = byId[Apps.SETTINGS_ID]
             if (settings != null && used.add(settings.id)) newDock.add(settings)
         } else {

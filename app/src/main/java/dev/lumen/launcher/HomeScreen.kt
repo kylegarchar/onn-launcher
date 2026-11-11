@@ -94,6 +94,7 @@ fun HomeScreen(state: LauncherState) {
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         Backdrop(state)
         Content(state, m)
+        TopFade(state, m)
         Clock(m)
         MoveHint(state, m)
         MenuOverlay(state, m)
@@ -484,6 +485,12 @@ private fun FocusTitle(state: LauncherState, m: Metrics) {
     val loc = state.locate(id) ?: return
     val slot = state.slotOf(loc)
     val extra = m.gap
+    // Dock names sit just under the glass shelf; grid names sit just under the grown card.
+    val below = if (loc.inDock) {
+        m.cardH + m.glassPad + m.px(6f)
+    } else {
+        m.cardH * (1f + (Metrics.FOCUS_SCALE - 1f) / 2f) + m.px(8f)
+    }
     key(id) {
         val appear = remember { Animatable(0f) }
         LaunchedEffect(Unit) {
@@ -503,9 +510,7 @@ private fun FocusTitle(state: LauncherState, m: Metrics) {
             modifier = Modifier
                 .graphicsLayer {
                     translationX = slot.first - extra / 2f
-                    translationY = slot.second +
-                        m.cardH * (1f + (Metrics.FOCUS_SCALE - 1f) / 2f) +
-                        m.px(8f) - (1f - appear.value) * m.px(5f)
+                    translationY = slot.second + below - (1f - appear.value) * m.px(5f)
                     alpha = appear.value
                 }
                 .width(m.toDp(m.cardW + extra)),
@@ -514,6 +519,35 @@ private fun FocusTitle(state: LauncherState, m: Metrics) {
 }
 
 // -------------------------------------------------------------------- chrome
+
+/** Fades out rows that have scrolled up underneath the clock. */
+@Composable
+private fun TopFade(state: LauncherState, m: Metrics) {
+    val inGrid by remember(state) {
+        derivedStateOf {
+            val loc = state.locate(state.selectedId)
+            loc != null && !loc.inDock
+        }
+    }
+    val strength = animateFloatAsState(
+        targetValue = if (inGrid) 1f else 0f,
+        animationSpec = tween(durationMillis = 260),
+        label = "topFade",
+    )
+    val brush = remember {
+        Brush.verticalGradient(
+            0f to Color.Black.copy(alpha = 0.92f),
+            0.5f to Color.Black.copy(alpha = 0.6f),
+            1f to Color.Transparent,
+        )
+    }
+    Spacer(
+        Modifier.fillMaxWidth().height(m.dp(84f)).drawBehind {
+            val a = strength.value.coerceIn(0f, 1f)
+            if (a > 0.01f) drawRect(brush, alpha = a)
+        },
+    )
+}
 
 @Composable
 private fun Clock(m: Metrics) {
