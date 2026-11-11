@@ -34,6 +34,9 @@ class AppEntry(
 object Apps {
     const val SETTINGS_ID = "builtin.settings"
 
+    /** System apps whose launcher entry duplicates a built-in card (Android TV Settings vs. the Settings card). */
+    private val DUPLICATES_OF_BUILTINS = setOf("com.android.tv.settings", "com.android.settings")
+
     /** Apps that go in the dock on first run, when installed. */
     val DEFAULT_DOCK: List<String> = listOf(
         "com.google.android.youtube.tv",
@@ -67,6 +70,7 @@ object Apps {
                 val activity = info.activityInfo ?: continue
                 val pkg = activity.packageName ?: continue
                 if (pkg == context.packageName || found.containsKey(pkg)) continue
+                if (pkg in DUPLICATES_OF_BUILTINS) continue   // the built-in Settings card already opens these
 
                 val stamp = try {
                     pm.getPackageInfo(pkg, 0).lastUpdateTime
