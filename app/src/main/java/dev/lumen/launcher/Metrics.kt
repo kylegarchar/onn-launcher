@@ -27,14 +27,14 @@ class Metrics(
     val gap: Float = 18f * u
     val cardW: Float = (screenW - 2f * side - (COLS - 1) * gap) / COLS
     val cardH: Float = cardW * 9f / 16f
-    val corner: Float = 9f * u
+    val corner: Float = 11f * u
 
     /** Vertical distance between one grid row and the next. */
     val rowPitch: Float = cardH + 38f * u
 
-    val dockTop: Float = 282f * u
+    val dockTop: Float = 262f * u
     val glassPad: Float = 14f * u
-    val gridTop: Float = dockTop + cardH + 54f * u
+    val gridTop: Float = dockTop + cardH + 50f * u
 
     /** Where the focused grid row comes to rest on screen. */
     val anchor: Float = 196f * u
@@ -56,8 +56,10 @@ class Metrics(
     fun gridY(row: Int): Float = gridTop + row * rowPitch
 
     companion object {
-        const val COLS = 6
-        const val MAX_DOCK = 6
+        const val COLS = 5
+
+        /** The dock is a single row, so it can never hold more than one row's worth. */
+        const val MAX_DOCK = COLS
         const val FOCUS_SCALE = 1.12f
     }
 }

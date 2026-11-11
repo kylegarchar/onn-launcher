@@ -199,7 +199,7 @@ private fun Hero(state: LauncherState, m: Metrics, scroll: State<Float>) {
     Column(
         Modifier.graphicsLayer {
             translationX = m.side
-            translationY = m.px(160f)
+            translationY = m.px(146f)
             alpha = (1f - scroll.value / m.px(120f)).coerceIn(0f, 1f)
         },
     ) {
@@ -523,10 +523,12 @@ private fun FocusTitle(state: LauncherState, m: Metrics) {
 /** Fades out rows that have scrolled up underneath the clock. */
 @Composable
 private fun TopFade(state: LauncherState, m: Metrics) {
+    // Only from the second grid row down: before that nothing has scrolled under the clock,
+    // and the fade would just dim the top of the dock.
     val inGrid by remember(state) {
         derivedStateOf {
             val loc = state.locate(state.selectedId)
-            loc != null && !loc.inDock
+            loc != null && !loc.inDock && loc.index / Metrics.COLS >= 1
         }
     }
     val strength = animateFloatAsState(
